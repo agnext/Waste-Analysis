@@ -18,16 +18,7 @@ import UsageAnalyticsCard from "@/components/dashboard/UsageAnalytics";
 import { Button } from "@/components/ui/button";
 import { useDashboardData, useDashboardFilterOptions } from "@/hooks/use-dashboard-data";
 import type { DashboardFilters } from "@/lib/dashboard";
-
-const DEVICE_NAMES: Record<string, string> = {
-  "AGFW26010": "Morgan Stanley",
-  "CFSO13": "Morgan Stanley 2",
-};
-
-const NAME_TO_SERIAL: Record<string, string> = Object.entries(DEVICE_NAMES).reduce((acc, [serial, name]) => {
-  acc[name] = serial;
-  return acc;
-}, {} as Record<string, string>);
+import { getInitialDevices } from "@/lib/device-utils";
 
 export default function Index() {
   const searchParams = new URLSearchParams(window.location.search);
@@ -35,13 +26,7 @@ export default function Index() {
   
   const { data: filterOptions } = useDashboardFilterOptions(urlCustomerId);
   
-  const urlDevice = searchParams.get("device") || searchParams.get("devices");
-  const dashboardDevices = urlDevice ? urlDevice.split(",").map(d => {
-    const trimmed = d.trim();
-    if (NAME_TO_SERIAL[trimmed]) return NAME_TO_SERIAL[trimmed];
-    if (trimmed === "CFS013") return "CFSO13";
-    return trimmed;
-  }) : ["AGFW26010", "CFSO13"];
+  const dashboardDevices = getInitialDevices();
 
   const [appliedFilters, setAppliedFilters] = useState<DashboardFilters>(() => {
     const to = new Date();
