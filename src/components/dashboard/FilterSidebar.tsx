@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { format, subMonths } from "date-fns";
 import { CalendarIcon, ChevronDown, Filter, RotateCcw, Search } from "lucide-react";
 
@@ -8,11 +8,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { DashboardFilters, FilterOptions } from "@/lib/dashboard";
+import { getDeviceLocationMap, getInitialDevices, getDeviceDetails } from "@/lib/device-utils";
 
 
 interface DropdownOption {
   label: string;
   value: string;
+  tooltip?: string;
 }
 
 interface MultiSelectDropdownProps {
@@ -23,6 +25,40 @@ interface MultiSelectDropdownProps {
   onChange: (selected: string[]) => void;
   searchPlaceholder?: string;
   enableSearch?: boolean;
+}
+
+function TruncatedOptionText({
+  fullText,
+  customTooltip,
+  children,
+  className = "",
+}: {
+  fullText: string;
+  customTooltip?: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const textRef = useRef<HTMLSpanElement>(null);
+
+  const checkOverflow = () => {
+    if (textRef.current) {
+      setIsOverflowing(textRef.current.scrollWidth > textRef.current.clientWidth);
+    }
+  };
+
+  const title = customTooltip || (isOverflowing ? fullText : undefined);
+
+  return (
+    <span
+      ref={textRef}
+      onMouseEnter={checkOverflow}
+      title={title}
+      className={`truncate ${className}`}
+    >
+      {children}
+    </span>
+  );
 }
 
 
@@ -37,31 +73,62 @@ function MultiSelectDropdown({
 }: MultiSelectDropdownProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const allSelected = options.length > 0 && selected.length === options.length;
 
-  const filteredOptions = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return options;
-    return options.filter((option) => option.label.toLowerCase().includes(query));
-  }, [options, search]);
+  const filtered = useMemo(() => {
+    if (!enableSearch || !search) return options;
+    return options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()));
+  }, [options, search, enableSearch]);
 
-  const toggleAll = () => {
-    onChange(allSelected ? [] : options.map((option) => option.value));
+  const toggle = (val: string) => {
+    onChange(selected.includes(val) ? selected.filter((v) => v !== val) : [...selected, val]);
   };
 
-  const toggle = (optionValue: string) => {
-    onChange(
-      selected.includes(optionValue)
-        ? selected.filter((item) => item !== optionValue)
-        : [...selected, optionValue],
-    );
+  const selectAll = () => onChange(options.map((o) => o.value));
+  const clearAll = () => onChange([]);
+
+  const summaryText = useMemo(() => {
+    if (!selected.length) return placeholder;
+    if (selected.length === options.length) return "All selected";
+    if (selected.length <= 2) {
+      return selected
+        .map((val) => options.find((o) => o.value === val)?.label || val)
+        .join(", ");
+    }
+    return `${selected.length} selected`;
+  }, [selected, options, placeholder]);
+
+  const renderLabelWithSmallParens = (labelStr: string) => {
+    const match = labelStr.match(/^(.*?)(\s*\([^)]+\))$/);
+    if (match) {
+      return (
+        <>
+          <span>{match[1]}</span>
+          <span className="text-[10.5px] text-muted-foreground ml-1 font-normal opacity-90">
+            {match[2]}
+          </span>
+        </>
+      );
+    }
+    return labelStr;
   };
 
-  const triggerText = selected.length === 0
-    ? placeholder
-    : allSelected
-      ? `All ${label.toLowerCase()}`
-      : `${selected.length} selected`;
+  const summaryDisplay = useMemo(() => {
+    if (!selected.length) return placeholder;
+    if (selected.length === options.length) return "All selected";
+    if (selected.length <= 2) {
+      return selected.map((val, idx) => {
+        const opt = options.find((o) => o.value === val);
+        const labelStr = opt?.label || val;
+        return (
+          <span key={val}>
+            {idx > 0 && ", "}
+            {renderLabelWithSmallParens(labelStr)}
+          </span>
+        );
+      });
+    }
+    return `${selected.length} selected`;
+  }, [selected, options, placeholder]);
 
   return (
     <Popover
@@ -72,72 +139,81 @@ function MultiSelectDropdown({
       }}
     >
       <PopoverTrigger asChild>
-        <button className="w-full flex items-center justify-between px-3 py-2 text-sm border border-border rounded bg-card text-foreground hover:bg-muted/50 transition-colors">
-          <span className={`truncate text-left ${selected.length === 0 ? "text-muted-foreground" : "text-foreground"}`}>
-            {triggerText}
-          </span>
-          <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" />
+        <button
+          type="button"
+          className="w-full flex items-center justify-between text-left text-xs bg-muted/50 hover:bg-muted border border-border/60 rounded-md px-2.5 py-1.5 transition-colors"
+        >
+          <TruncatedOptionText fullText={summaryText} className="text-foreground font-normal">
+            {summaryDisplay}
+          </TruncatedOptionText>
+          <ChevronDown className="w-3.5 h-3.5 text-muted-foreground ml-1 shrink-0 opacity-70" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-2" align="start">
-        {enableSearch ? (
-          <div className="relative mb-2">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+      <PopoverContent
+        className="w-56 p-2 bg-popover text-popover-foreground border border-border shadow-md rounded-md z-50"
+        align="start"
+      >
+        <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-border/50 text-[11px]">
+          <span className="font-medium text-foreground">{label}</span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={selectAll}
+              className="text-primary hover:underline"
+            >
+              All
+            </button>
+            <span className="text-muted-foreground">·</span>
+            <button
+              type="button"
+              onClick={clearAll}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        {enableSearch && (
+          <div className="relative mb-1.5">
+            <Search className="w-3 h-3 absolute left-2 top-2 text-muted-foreground" />
             <Input
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder={searchPlaceholder}
-              className="h-9 pl-8 text-sm"
+              className="h-7 text-xs pl-6 bg-background border-border/60"
             />
           </div>
-        ) : null}
+        )}
 
-        <label className="flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer hover:bg-muted rounded">
-          <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
-          <span className="font-medium">Select all</span>
-        </label>
-        <div className="h-px bg-border my-1" />
-        <div className="max-h-56 overflow-y-auto">
-          {filteredOptions.length ? (
-            filteredOptions.map((option) => (
-              <label key={option.value} className="flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer hover:bg-muted rounded">
-                <Checkbox checked={selected.includes(option.value)} onCheckedChange={() => toggle(option.value)} />
-                <span>{option.label}</span>
-              </label>
-            ))
-          ) : (
-            <p className="px-2 py-3 text-sm text-muted-foreground">No matching {label.toLowerCase()} found.</p>
+        <div className="max-h-48 overflow-y-auto space-y-1">
+          {filtered.map((opt) => (
+            <label
+              key={opt.value}
+              className="flex items-center gap-2 px-0 py-1 rounded text-xs hover:bg-muted/60 cursor-pointer select-none"
+            >
+              <Checkbox
+                checked={selected.includes(opt.value)}
+                onCheckedChange={() => toggle(opt.value)}
+                className="h-3.5 w-3.5 shrink-0"
+              />
+              <TruncatedOptionText
+                fullText={opt.label}
+                customTooltip={opt.tooltip}
+                className="text-foreground font-normal"
+              >
+                {renderLabelWithSmallParens(opt.label)}
+              </TruncatedOptionText>
+            </label>
+          ))}
+          {!filtered.length && (
+            <p className="text-[11px] text-muted-foreground text-center py-2">No matching {label.toLowerCase()} found.</p>
           )}
         </div>
       </PopoverContent>
     </Popover>
   );
 }
-
-
-const DEVICE_NAMES: Record<string, string> = {
-  "AGFW26010": "Morgan Stanley",
-  "CFSO13": "Morgan Stanley 2",
-};
-
-const NAME_TO_SERIAL: Record<string, string> = Object.entries(DEVICE_NAMES).reduce((acc, [serial, name]) => {
-  acc[name] = serial;
-  return acc;
-}, {} as Record<string, string>);
-
-const getInitialDevices = () => {
-  if (typeof window === "undefined") return ["AGFW26010", "CFSO13"];
-  const searchParams = new URLSearchParams(window.location.search);
-  const urlDevice = searchParams.get("device") || searchParams.get("devices");
-  if (!urlDevice) return ["AGFW26010", "CFSO13"];
-  
-  return urlDevice.split(",").map(d => {
-    const trimmed = d.trim();
-    if (NAME_TO_SERIAL[trimmed]) return NAME_TO_SERIAL[trimmed];
-    if (trimmed === "CFS013") return "CFSO13";
-    return trimmed;
-  });
-};
 
 interface FilterSidebarProps {
   options?: FilterOptions;
@@ -166,17 +242,33 @@ export default function FilterSidebar({ options, onApply }: FilterSidebarProps) 
   }, [options]);
 
   const deviceOptions = useMemo<DropdownOption[]>(() => {
-    const searchParams = new URLSearchParams(window.location.search);
+    const deviceMap = getDeviceLocationMap();
+    const searchStr = typeof window !== "undefined" ? window.location.search : "";
+    const searchParams = new URLSearchParams(searchStr);
     const urlDevice = searchParams.get("device") || searchParams.get("devices");
-    
+
     if (urlDevice) {
-      return getInitialDevices().map((id) => ({ label: DEVICE_NAMES[id] || id, value: id }));
+      return getInitialDevices(deviceMap).map((id) => {
+        const details = getDeviceDetails(id, deviceMap);
+        return {
+          label: details.label,
+          value: id,
+          tooltip: details.tooltip,
+        };
+      });
     }
-    
+
     const backendDevices = options?.devices || [];
-    const available = Array.from(new Set([...backendDevices, ...getInitialDevices()]));
-    return available.map((id) => ({ label: DEVICE_NAMES[id] || id, value: id }));
-  }, [options?.devices]);
+    const available = Array.from(new Set([...backendDevices, ...getInitialDevices(deviceMap)]));
+    return available.map((id) => {
+      const details = getDeviceDetails(id, deviceMap);
+      return {
+        label: details.label,
+        value: id,
+        tooltip: details.tooltip,
+      };
+    });
+  }, [options?.devices, typeof window !== "undefined" ? window.location.search : ""]);
   const mealOptions = useMemo<DropdownOption[]>(() => (options?.meal_types ?? []).map((item) => ({ label: item, value: item })), [options?.meal_types]);
   const categoryOptions = useMemo<DropdownOption[]>(() => (options?.categories ?? []).map((item) => ({ label: item, value: item })), [options?.categories]);
   const wasteTypeOptions = useMemo<DropdownOption[]>(() => (options?.waste_types ?? []).map((item) => ({ label: item, value: item })), [options?.waste_types]);
