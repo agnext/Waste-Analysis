@@ -37,8 +37,8 @@ def _waste_type_expr() -> str:
     return (
         "CASE "
         f"WHEN {raw_waste_type} = 'Plate Waste' THEN 'Plate Waste' "
-        f"WHEN {raw_waste_type} IN ('Production Waste', 'Bain Marie Waste') THEN 'Production Waste' "
-        f"WHEN {raw_waste_type} = 'Peel Waste' THEN 'Preparation Waste' "
+        f"WHEN {raw_waste_type} = 'Production Waste' THEN 'Production Waste' "
+        f"WHEN {raw_waste_type} = 'Bain Marie Waste' THEN 'Bain Marie Waste' "
         f"WHEN {raw_waste_type} = 'Spoiled Waste' THEN 'Spoilage' "
         f"WHEN {raw_waste_type} IN ('Donation', 'Repurpose') THEN 'Other' "
         f"ELSE {raw_waste_type} END"
