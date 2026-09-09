@@ -5,8 +5,6 @@ import { dashboardApi, type DashboardFilters } from "@/lib/dashboard";
 
 
 const PRESET_QUESTIONS = [
-  "What is the total waste recorded?",
-  "How many waste scans have been recorded?",
   "What is the average daily waste?",
   "Which food item is wasted the most?",
   "Which meal time generates the highest waste?",
