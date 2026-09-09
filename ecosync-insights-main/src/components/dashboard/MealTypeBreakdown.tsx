@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { dashboardApi, type DashboardFilters } from "@/lib/dashboard";
 
 
-const WASTE_TYPE_OPTIONS = ["Plate Waste", "Production Waste", "Preparation Waste", "Spoilage", "Other"];
+const WASTE_TYPE_OPTIONS = ["Plate Waste", "Production Waste", "Bain Marie Waste", "Spoilage", "Other"];
 
 
 interface MealTypeBreakdownProps {

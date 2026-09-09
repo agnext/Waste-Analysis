@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { dashboardApi, type DashboardFilters, type FilterOptions } from "@/lib/dashboard";
 
 
-const WASTE_TYPE_OPTIONS = ["Plate Waste", "Production Waste", "Preparation Waste", "Spoilage", "Other"];
+const WASTE_TYPE_OPTIONS = ["Plate Waste", "Production Waste", "Bain Marie Waste", "Spoilage", "Other"];
 
 interface WeekdayComparisonGridProps {
   filters: DashboardFilters;
