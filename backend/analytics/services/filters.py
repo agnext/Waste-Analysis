@@ -15,6 +15,7 @@ class FilterParams:
     meal_types: tuple[str, ...] = ()
     categories: tuple[str, ...] = ()
     waste_types: tuple[str, ...] = ()
+    day_types: tuple[str, ...] = ()
     week: str | None = None
     weeks: tuple[str, ...] = ()
     customer_id: int | None = None
@@ -56,6 +57,7 @@ def parse_filters(params: Mapping[str, str]) -> FilterParams:
     meal_types = _split_csv(params.get("meal_types"))
     categories = _split_csv(params.get("categories"))
     waste_types = _split_csv(params.get("waste_types"))
+    day_types = _split_csv(params.get("day_types") or params.get("day_type"))
     device = (params.get("device") or None)
     customer_id_str = params.get("customer_id")
     customer_id = int(customer_id_str) if customer_id_str and customer_id_str.isdigit() else None
@@ -77,6 +79,7 @@ def parse_filters(params: Mapping[str, str]) -> FilterParams:
         meal_types=meal_types,
         categories=categories,
         waste_types=waste_types,
+        day_types=day_types,
         week=week,
         weeks=weeks,
         customer_id=customer_id,
@@ -90,4 +93,12 @@ def apply_common_filters(queryset: QuerySet, filters: FilterParams) -> QuerySet:
         queryset = queryset.filter(captured_at__date__lte=filters.date_to)
     if filters.device:
         queryset = queryset.filter(device__device_code=filters.device)
+    if filters.day_types:
+        normalized_day_types = {dt.lower() for dt in filters.day_types}
+        has_weekdays = bool(normalized_day_types & {"weekday", "weekdays"})
+        has_weekends = bool(normalized_day_types & {"weekend", "weekends"})
+        if has_weekdays and not has_weekends:
+            queryset = queryset.filter(captured_at__week_day__in=[2, 3, 4, 5, 6])
+        elif has_weekends and not has_weekdays:
+            queryset = queryset.filter(captured_at__week_day__in=[1, 7])
     return queryset

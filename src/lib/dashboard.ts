@@ -6,6 +6,7 @@ export interface DashboardFilters {
   categories: string[];
   weeks: string[];
   wasteTypes: string[];
+  dayTypes?: string[];
   customerId?: string;
 }
 
@@ -57,6 +58,7 @@ export interface FilterOptions {
   meal_types: string[];
   categories: string[];
   waste_types: string[];
+  day_types?: string[];
   weeks: FilterWeek[];
   min_date: string | null;
   max_date: string | null;
@@ -105,6 +107,7 @@ function buildParams(filters: DashboardFilters): URLSearchParams {
   if (filters.mealTypes.length) params.set("meal_types", filters.mealTypes.join(","));
   if (filters.categories.length) params.set("categories", filters.categories.join(","));
   if (filters.wasteTypes?.length) params.set("waste_types", filters.wasteTypes.join(","));
+  if (filters.dayTypes?.length) params.set("day_types", filters.dayTypes.join(","));
   if (filters.customerId) params.set("customer_id", filters.customerId);
   return params;
 }

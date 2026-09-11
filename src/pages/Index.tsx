@@ -6,7 +6,6 @@ import AlertsAnomalies from "@/components/dashboard/AlertsAnomalies";
 import BainMarieAnalyticsCard from "@/components/dashboard/BainMarieAnalytics";
 import ChatBar from "@/components/dashboard/ChatBar";
 import CoreAnalysis from "@/components/dashboard/CoreAnalysis";
-import CostImpact from "@/components/dashboard/CostImpact";
 import DailyAvgByCategory from "@/components/dashboard/DailyAvgByCategory";
 import FilterSidebar from "@/components/dashboard/FilterSidebar";
 import FinalInsights from "@/components/dashboard/FinalInsights";
@@ -39,6 +38,7 @@ export default function Index() {
       categories: [],
       weeks: [],
       wasteTypes: [],
+      dayTypes: [],
       customerId: urlCustomerId,
     };
   });
@@ -55,6 +55,7 @@ export default function Index() {
       categories: [],
       weeks: [],
       wasteTypes: [],
+      dayTypes: [],
       customerId: urlCustomerId,
     });
   }, [filterOptions, urlCustomerId]);
@@ -110,7 +111,7 @@ export default function Index() {
 
           <TimeAnalysis filters={filters} options={filterOptions} />
 
-          <AlertsAnomalies foodItems={dashboard.foodItems} wasteCategories={dashboard.wasteCategories} anomalies={dashboard.anomalies} />
+          <AlertsAnomalies foodItems={dashboard.foodItems} wasteCategories={dashboard.wasteCategories} />
 
           <UsageAnalyticsCard data={dashboard.usageAnalytics} />
 
@@ -119,8 +120,6 @@ export default function Index() {
           <DailyAvgByCategory data={dashboard.dailyAvgByCategory} />
 
           <PatternDetection insights={dashboard.insights} />
-
-          <CostImpact summary={dashboard.summary} />
 
           <FinalInsights insights={dashboard.insights} />
         </div>

@@ -115,6 +115,78 @@ function MultiSelectDropdown({
 }
 
 
+interface SingleSelectDropdownProps {
+  label: string;
+  placeholder?: string;
+  options: DropdownOption[];
+  selected: string;
+  onChange: (selected: string) => void;
+}
+
+function SingleSelectDropdown({
+  label,
+  placeholder = "Select...",
+  options,
+  selected,
+  onChange,
+}: SingleSelectDropdownProps) {
+  const [open, setOpen] = useState(false);
+
+  const selectedOption = options.find((o) => o.value === selected);
+  const displayText = selectedOption ? selectedOption.label : placeholder;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button className="w-full flex items-center justify-between px-3 py-2 text-sm border border-border rounded bg-card text-foreground hover:bg-muted/50 transition-colors">
+          <span className="truncate text-left text-foreground font-normal">
+            {displayText}
+          </span>
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-2" align="start">
+        <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-border/50 text-xs">
+          <span className="font-medium text-foreground">{label}</span>
+          <button
+            type="button"
+            onClick={() => {
+              onChange("All Days");
+              setOpen(false);
+            }}
+            className="text-muted-foreground hover:text-foreground text-xs"
+          >
+            Clear
+          </button>
+        </div>
+        <div className="space-y-1">
+          {options.map((opt) => {
+            const isSelected = selected === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  onChange(opt.value);
+                  setOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-2 py-1.5 rounded text-sm text-left transition-colors ${
+                  isSelected
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "hover:bg-muted text-foreground"
+                }`}
+              >
+                <span>{opt.label}</span>
+                {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 interface FilterSidebarProps {
   options?: FilterOptions;
   onApply: (filters: DashboardFilters) => void;
@@ -127,6 +199,8 @@ export default function FilterSidebar({ options, onApply }: FilterSidebarProps) 
   const [devices, setDevices] = useState<string[]>([]);
   const [meals, setMeals] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [wasteTypes, setWasteTypes] = useState<string[]>([]);
+  const [dayType, setDayType] = useState<string>("All Days");
   const [weeks, setWeeks] = useState<string[]>([]);
 
   useEffect(() => {
@@ -136,12 +210,20 @@ export default function FilterSidebar({ options, onApply }: FilterSidebarProps) 
     setDevices(options.devices);
     setMeals(options.meal_types);
     setCategories(options.categories);
+    setWasteTypes(options.waste_types ?? []);
+    setDayType("All Days");
     setWeeks([]);
   }, [options]);
 
   const deviceOptions = useMemo<DropdownOption[]>(() => (options?.devices ?? []).map((item) => ({ label: item, value: item })), [options?.devices]);
   const mealOptions = useMemo<DropdownOption[]>(() => (options?.meal_types ?? []).map((item) => ({ label: item, value: item })), [options?.meal_types]);
   const categoryOptions = useMemo<DropdownOption[]>(() => (options?.categories ?? []).map((item) => ({ label: item, value: item })), [options?.categories]);
+  const wasteTypeOptions = useMemo<DropdownOption[]>(() => (options?.waste_types ?? []).map((item) => ({ label: item, value: item })), [options?.waste_types]);
+  const dayTypeOptions = useMemo<DropdownOption[]>(() => [
+    { label: "All Days", value: "All Days" },
+    { label: "WeekDays", value: "WeekDays" },
+    { label: "Weekend", value: "Weekend" },
+  ], []);
   const weekOptions = useMemo<DropdownOption[]>(() => (options?.weeks ?? []).map((item) => ({ label: item.label, value: item.value })), [options?.weeks]);
 
   const apply = () => {
@@ -163,6 +245,8 @@ export default function FilterSidebar({ options, onApply }: FilterSidebarProps) 
       devices,
       mealTypes: meals,
       categories,
+      wasteTypes,
+      dayTypes: dayType && dayType !== "All Days" ? [dayType] : [],
       weeks,
     });
   };
@@ -173,6 +257,8 @@ export default function FilterSidebar({ options, onApply }: FilterSidebarProps) 
     setDevices(options?.devices ?? []);
     setMeals(options?.meal_types ?? []);
     setCategories(options?.categories ?? []);
+    setWasteTypes([]);
+    setDayType("All Days");
     setWeeks([]);
     onApply({
       dateFrom: options?.min_date ?? undefined,
@@ -180,6 +266,8 @@ export default function FilterSidebar({ options, onApply }: FilterSidebarProps) 
       devices: options?.devices ?? [],
       mealTypes: options?.meal_types ?? [],
       categories: options?.categories ?? [],
+      wasteTypes: [],
+      dayTypes: [],
       weeks: [],
     });
   };
@@ -255,6 +343,29 @@ export default function FilterSidebar({ options, onApply }: FilterSidebarProps) 
             selected={categories}
             onChange={setCategories}
             searchPlaceholder="Search categories..."
+          />
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Waste Type</label>
+          <MultiSelectDropdown
+            label="Waste types"
+            placeholder="All waste types"
+            options={wasteTypeOptions}
+            selected={wasteTypes}
+            onChange={setWasteTypes}
+            searchPlaceholder="Search waste types..."
+          />
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Day Type</label>
+          <SingleSelectDropdown
+            label="Day type"
+            placeholder="All Days"
+            options={dayTypeOptions}
+            selected={dayType}
+            onChange={setDayType}
           />
         </div>
 

@@ -28,6 +28,10 @@
     "intent": "waste_trend"
   },
   {
+    "question": "Which are the anomaly days?",
+    "intent": "anomaly_days"
+  },
+  {
     "question": "Which days had unusually high waste?",
     "intent": "anomaly_days"
   },

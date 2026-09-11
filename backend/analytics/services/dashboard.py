@@ -93,6 +93,14 @@ def _where_clause(
         placeholders = ", ".join(["%s"] * len(filters.weeks))
         clauses.append(f"CONCAT(YEAR(created_on_date), '-W', LPAD(WEEK(created_on_date, 3), 2, '0')) IN ({placeholders})")
         params.extend(filters.weeks)
+    if filters.day_types:
+        normalized_day_types = {dt.lower() for dt in filters.day_types}
+        has_weekdays = bool(normalized_day_types & {"weekday", "weekdays"})
+        has_weekends = bool(normalized_day_types & {"weekend", "weekends"})
+        if has_weekdays and not has_weekends:
+            clauses.append("WEEKDAY(created_on_date) BETWEEN 0 AND 4")
+        elif has_weekends and not has_weekdays:
+            clauses.append("WEEKDAY(created_on_date) IN (5, 6)")
     return "WHERE " + " AND ".join(clauses), params
 
 
@@ -525,6 +533,7 @@ def get_filter_options(filters: FilterParams) -> dict:
         "meal_types": meals,
         "categories": categories,
         "waste_types": waste_types,
+        "day_types": ["WeekDays", "Weekend"],
         "weeks": [
             {
                 "label": week["week"],

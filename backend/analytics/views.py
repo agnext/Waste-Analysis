@@ -45,6 +45,9 @@ def _normalize_chat_filters(raw_filters: dict) -> dict:
     if "wasteTypes" in normalized and "waste_types" not in normalized:
         value = normalized.get("wasteTypes")
         normalized["waste_types"] = ",".join(value) if isinstance(value, list) else value
+    if "dayTypes" in normalized and "day_types" not in normalized:
+        value = normalized.get("dayTypes")
+        normalized["day_types"] = ",".join(value) if isinstance(value, list) else value
     if "weeks" in normalized:
         value = normalized.get("weeks")
         if isinstance(value, list):

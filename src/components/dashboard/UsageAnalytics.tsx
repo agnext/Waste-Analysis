@@ -36,36 +36,21 @@ export default function UsageAnalyticsCard({ data }: UsageAnalyticsProps) {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <h4 className="text-sm font-medium text-foreground mb-2">Scans by Meal</h4>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={data?.scans_by_meal ?? []} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,13%,90%)" />
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 4 }} />
-              <Bar dataKey="value" radius={[3, 3, 0, 0]}>
-                {(data?.scans_by_meal ?? []).map((_, index) => (
-                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div>
-          <h4 className="text-sm font-medium text-foreground mb-2">Scans by Waste Type</h4>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={data?.scans_by_waste_type ?? []} layout="vertical" margin={{ top: 5, right: 10, bottom: 5, left: 120 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,13%,90%)" />
-              <XAxis type="number" tick={{ fontSize: 11 }} />
-              <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={115} />
-              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 4 }} />
-              <Bar dataKey="value" fill="hsl(155,43%,21%)" radius={[0, 3, 3, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+      <div>
+        <h4 className="text-sm font-medium text-foreground mb-2">Scans by Meal</h4>
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={data?.scans_by_meal ?? []} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,13%,90%)" />
+            <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+            <YAxis tick={{ fontSize: 11 }} />
+            <Tooltip contentStyle={{ fontSize: 12, borderRadius: 4 }} />
+            <Bar dataKey="value" radius={[3, 3, 0, 0]}>
+              {(data?.scans_by_meal ?? []).map((_, index) => (
+                <Cell key={index} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
