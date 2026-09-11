@@ -377,10 +377,10 @@ export default function FilterSidebar({ options, onApply }: FilterSidebarProps) 
       dateFrom: finalDateFrom,
       dateTo: finalDateTo,
       devices: devices.length ? devices : getInitialDevices(),
-      mealTypes: meals,
-      categories,
+      mealTypes: meals.length === mealOptions.length ? [] : meals,
+      categories: categories.length === categoryOptions.length ? [] : categories,
       weeks,
-      wasteTypes,
+      wasteTypes: wasteTypes.length === wasteTypeOptions.length ? [] : wasteTypes,
       dayTypes: dayType && dayType !== "All Days" ? [dayType] : [],
     });
   };

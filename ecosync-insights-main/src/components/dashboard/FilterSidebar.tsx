@@ -210,7 +210,7 @@ export default function FilterSidebar({ options, onApply }: FilterSidebarProps) 
     setDevices(options.devices);
     setMeals(options.meal_types);
     setCategories(options.categories);
-    setWasteTypes(options.waste_types ?? []);
+    setWasteTypes([]);
     setDayType("All Days");
     setWeeks([]);
   }, [options]);
@@ -242,10 +242,10 @@ export default function FilterSidebar({ options, onApply }: FilterSidebarProps) 
     onApply({
       dateFrom: finalDateFrom,
       dateTo: finalDateTo,
-      devices,
-      mealTypes: meals,
-      categories,
-      wasteTypes,
+      devices: devices.length === deviceOptions.length ? [] : devices,
+      mealTypes: meals.length === mealOptions.length ? [] : meals,
+      categories: categories.length === categoryOptions.length ? [] : categories,
+      wasteTypes: wasteTypes.length === wasteTypeOptions.length ? [] : wasteTypes,
       dayTypes: dayType && dayType !== "All Days" ? [dayType] : [],
       weeks,
     });
