@@ -393,16 +393,19 @@ def get_weekday_comparison_grid(filters: FilterParams, weeks: list[str]) -> dict
     """
     rows = _fetch_all(sql, [*params, *selected_weeks])
 
+    day_types_set = {dt.lower() for dt in (filters.day_types or ())}
+    has_weekdays = bool(day_types_set & {"weekday", "weekdays"})
+    has_weekends = bool(day_types_set & {"weekend", "weekends"})
+
+    if has_weekdays and not has_weekends:
+        target_days = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+    elif has_weekends and not has_weekdays:
+        target_days = ["Sat", "Sun"]
+    else:
+        target_days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
     week_meta: dict[str, dict] = {}
-    day_values = {
-        "Mon": {},
-        "Tue": {},
-        "Wed": {},
-        "Thu": {},
-        "Fri": {},
-        "Sat": {},
-        "Sun": {},
-    }
+    day_values = {day: {} for day in target_days}
     short_names = {
         "Monday": "Mon",
         "Tuesday": "Tue",
@@ -420,13 +423,16 @@ def get_weekday_comparison_grid(filters: FilterParams, weeks: list[str]) -> dict
             "value": week_value,
             "label": _format_week_label(week_start, week_end),
         }
-        day_values[short_names[row["day_name"]]][week_value] = float(row["value"] or 0)
+        short_day = short_names.get(row["day_name"])
+        if short_day in day_values:
+            day_values[short_day][week_value] = float(row["value"] or 0)
 
     ordered_weeks = [week_meta[week] for week in selected_weeks if week in week_meta]
     comparison_weeks = [week["value"] for week in ordered_weeks]
 
     grid_rows = []
-    for day, values in day_values.items():
+    for day in target_days:
+        values = day_values[day]
         latest_change_pct = None
         if len(comparison_weeks) >= 2:
             previous_value = values.get(comparison_weeks[-2], 0)
