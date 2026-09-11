@@ -6,6 +6,7 @@ export interface DashboardFilters {
   categories: string[];
   weeks: string[];
   wasteTypes: string[];
+  dayTypes?: string[];
   customerId?: string;
 }
 
@@ -57,6 +58,7 @@ export interface FilterOptions {
   meal_types: string[];
   categories: string[];
   waste_types: string[];
+  day_types?: string[];
   weeks: FilterWeek[];
   min_date: string | null;
   max_date: string | null;
@@ -83,7 +85,7 @@ export interface UsageAnalytics {
   scans_per_day: number;
   total_devices: number;
   scans_by_meal: NamedValue[];
-  scans_by_waste_type: NamedValue[];
+  scans_by_waste_type?: NamedValue[];
 }
 
 export interface BainMarieAnalytics {
@@ -105,6 +107,7 @@ function buildParams(filters: DashboardFilters): URLSearchParams {
   if (filters.mealTypes.length) params.set("meal_types", filters.mealTypes.join(","));
   if (filters.categories.length) params.set("categories", filters.categories.join(","));
   if (filters.wasteTypes?.length) params.set("waste_types", filters.wasteTypes.join(","));
+  if (filters.dayTypes?.length) params.set("day_types", filters.dayTypes.join(","));
   if (filters.customerId) params.set("customer_id", filters.customerId);
   return params;
 }
@@ -167,6 +170,7 @@ export const dashboardApi = {
       meal_types: filters.mealTypes.join(","),
       categories: filters.categories.join(","),
       waste_types: (filters.wasteTypes ?? []).join(","),
+      day_types: (filters.dayTypes ?? []).join(","),
       customer_id: filters.customerId,
     };
     const response = await fetch("/api/chat-query", {

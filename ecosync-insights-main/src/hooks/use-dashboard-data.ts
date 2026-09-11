@@ -19,7 +19,6 @@ export function useDashboardData(filters: DashboardFilters) {
       { queryKey: ["dashboard-waste-categories", filters], queryFn: () => dashboardApi.getWasteCategories(filters) },
       { queryKey: ["dashboard-meals", filters], queryFn: () => dashboardApi.getMeals(filters) },
       { queryKey: ["dashboard-trend", filters], queryFn: () => dashboardApi.getTrend(filters) },
-      { queryKey: ["dashboard-anomalies", filters], queryFn: () => dashboardApi.getAnomalies(filters) },
       { queryKey: ["dashboard-weekly", filters], queryFn: () => dashboardApi.getWeeklyWaste(filters) },
       { queryKey: ["dashboard-weekday", filters], queryFn: () => dashboardApi.getWeekdayWaste(filters) },
       { queryKey: ["dashboard-top-devices", filters], queryFn: () => dashboardApi.getTopDevices(filters) },
@@ -27,14 +26,13 @@ export function useDashboardData(filters: DashboardFilters) {
     ],
   });
 
-  const [summary, foodItems, wasteCategories, meals, trend, anomalies, weeklyWaste, weekdayWaste, topDevices, insights] = results;
+  const [summary, foodItems, wasteCategories, meals, trend, weeklyWaste, weekdayWaste, topDevices, insights] = results;
   return {
     summary: summary.data,
     foodItems: foodItems.data ?? [],
     wasteCategories: wasteCategories.data ?? [],
     meals: meals.data ?? [],
     trend: trend.data ?? [],
-    anomalies: anomalies.data ?? [],
     weeklyWaste: weeklyWaste.data ?? [],
     weekdayWaste: weekdayWaste.data ?? [],
     topDevices: topDevices.data ?? [],

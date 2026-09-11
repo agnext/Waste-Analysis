@@ -10,6 +10,7 @@ const PRESET_QUESTIONS = [
   "Which meal time generates the highest waste?",
   "What is the breakdown of waste by category?",
   "How has waste trended over time?",
+  "Which are the anomaly days?",
   "Which days had unusually high waste?",
   "What is the total waste for this week?",
   "Which device generated the most waste?",

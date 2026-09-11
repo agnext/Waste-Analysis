@@ -80,6 +80,14 @@ def _where_clause(filters: FilterParams) -> tuple[str, list]:
         placeholders = ", ".join(["%s"] * len(filters.weeks))
         clauses.append(f"CONCAT(YEAR(created_on_date), '-W', LPAD(WEEK(created_on_date, 3), 2, '0')) IN ({placeholders})")
         params.extend(filters.weeks)
+    if filters.day_types:
+        normalized_day_types = {dt.lower() for dt in filters.day_types}
+        has_weekdays = bool(normalized_day_types & {"weekday", "weekdays"})
+        has_weekends = bool(normalized_day_types & {"weekend", "weekends"})
+        if has_weekdays and not has_weekends:
+            clauses.append("WEEKDAY(created_on_date) BETWEEN 0 AND 4")
+        elif has_weekends and not has_weekdays:
+            clauses.append("WEEKDAY(created_on_date) IN (5, 6)")
     return "WHERE " + " AND ".join(clauses), params
 
 
@@ -472,6 +480,14 @@ def get_filter_options() -> dict:
           AND commodity_name <> ''
         ORDER BY value ASC
     """
+    waste_types_sql = f"""
+        SELECT DISTINCT {_waste_type_expr()} AS value
+        FROM {_table()}
+        {base_where}
+          AND {_waste_type_expr()} IS NOT NULL
+          AND {_waste_type_expr()} <> ''
+        ORDER BY value ASC
+    """
     range_sql = f"""
         SELECT MIN(created_on_date) AS min_date, MAX(created_on_date) AS max_date
         FROM {_table()}
@@ -481,6 +497,7 @@ def get_filter_options() -> dict:
     devices = [row["value"] for row in _fetch_all(devices_sql, [COMPANY_ID])]
     meals = [row["value"] for row in _fetch_all(meals_sql, [COMPANY_ID])]
     categories = [row["value"] for row in _fetch_all(categories_sql, [COMPANY_ID])]
+    waste_types = [row["value"] for row in _fetch_all(waste_types_sql, [COMPANY_ID])]
     date_range = _fetch_one(range_sql, [COMPANY_ID])
     weeks = get_weekly_waste(FilterParams())
 
@@ -488,6 +505,8 @@ def get_filter_options() -> dict:
         "devices": devices,
         "meal_types": meals,
         "categories": categories,
+        "waste_types": waste_types,
+        "day_types": ["Weekdays", "Weekend"],
         "weeks": [
             {
                 "label": week["week"],
