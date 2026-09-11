@@ -221,7 +221,7 @@ export default function FilterSidebar({ options, onApply }: FilterSidebarProps) 
   const wasteTypeOptions = useMemo<DropdownOption[]>(() => (options?.waste_types ?? []).map((item) => ({ label: item, value: item })), [options?.waste_types]);
   const dayTypeOptions = useMemo<DropdownOption[]>(() => [
     { label: "All Days", value: "All Days" },
-    { label: "WeekDays", value: "WeekDays" },
+    { label: "Weekdays", value: "Weekdays" },
     { label: "Weekend", value: "Weekend" },
   ], []);
   const weekOptions = useMemo<DropdownOption[]>(() => (options?.weeks ?? []).map((item) => ({ label: item.label, value: item.value })), [options?.weeks]);

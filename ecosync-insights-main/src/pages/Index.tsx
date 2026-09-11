@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-// import AlertsAnomalies from "@/components/dashboard/AlertsAnomalies";
+import AlertsAnomalies from "@/components/dashboard/AlertsAnomalies";
 import ChatBar from "@/components/dashboard/ChatBar";
 import CoreAnalysis from "@/components/dashboard/CoreAnalysis";
 import FilterSidebar from "@/components/dashboard/FilterSidebar";
@@ -77,7 +77,7 @@ export default function Index() {
 
           <TimeAnalysis filters={filters} options={filterOptions} weeklyWaste={dashboard.weeklyWaste} />
 
-          {/* <AlertsAnomalies foodItems={dashboard.foodItems} wasteCategories={dashboard.wasteCategories} anomalies={dashboard.anomalies} /> */}
+          <AlertsAnomalies foodItems={dashboard.foodItems} wasteCategories={dashboard.wasteCategories} />
 
           <PatternDetection insights={dashboard.insights} />
 

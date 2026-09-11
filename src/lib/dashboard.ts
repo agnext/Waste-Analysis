@@ -85,7 +85,7 @@ export interface UsageAnalytics {
   scans_per_day: number;
   total_devices: number;
   scans_by_meal: NamedValue[];
-  scans_by_waste_type: NamedValue[];
+  scans_by_waste_type?: NamedValue[];
 }
 
 export interface BainMarieAnalytics {
@@ -170,6 +170,7 @@ export const dashboardApi = {
       meal_types: filters.mealTypes.join(","),
       categories: filters.categories.join(","),
       waste_types: (filters.wasteTypes ?? []).join(","),
+      day_types: (filters.dayTypes ?? []).join(","),
       customer_id: filters.customerId,
     };
     const response = await fetch("/api/chat-query", {

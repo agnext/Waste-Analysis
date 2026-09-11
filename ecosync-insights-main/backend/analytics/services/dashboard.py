@@ -480,6 +480,14 @@ def get_filter_options() -> dict:
           AND commodity_name <> ''
         ORDER BY value ASC
     """
+    waste_types_sql = f"""
+        SELECT DISTINCT {_waste_type_expr()} AS value
+        FROM {_table()}
+        {base_where}
+          AND {_waste_type_expr()} IS NOT NULL
+          AND {_waste_type_expr()} <> ''
+        ORDER BY value ASC
+    """
     range_sql = f"""
         SELECT MIN(created_on_date) AS min_date, MAX(created_on_date) AS max_date
         FROM {_table()}
@@ -489,6 +497,7 @@ def get_filter_options() -> dict:
     devices = [row["value"] for row in _fetch_all(devices_sql, [COMPANY_ID])]
     meals = [row["value"] for row in _fetch_all(meals_sql, [COMPANY_ID])]
     categories = [row["value"] for row in _fetch_all(categories_sql, [COMPANY_ID])]
+    waste_types = [row["value"] for row in _fetch_all(waste_types_sql, [COMPANY_ID])]
     date_range = _fetch_one(range_sql, [COMPANY_ID])
     weeks = get_weekly_waste(FilterParams())
 
@@ -496,7 +505,8 @@ def get_filter_options() -> dict:
         "devices": devices,
         "meal_types": meals,
         "categories": categories,
-        "day_types": ["WeekDays", "Weekend"],
+        "waste_types": waste_types,
+        "day_types": ["Weekdays", "Weekend"],
         "weeks": [
             {
                 "label": week["week"],

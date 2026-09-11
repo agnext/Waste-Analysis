@@ -146,6 +146,8 @@ export const dashboardApi = {
       devices: filters.devices.join(","),
       meal_types: filters.mealTypes.join(","),
       categories: filters.categories.join(","),
+      waste_types: (filters.wasteTypes ?? []).join(","),
+      day_types: (filters.dayTypes ?? []).join(","),
     };
     const response = await fetch("/api/chat-query", {
       method: "POST",

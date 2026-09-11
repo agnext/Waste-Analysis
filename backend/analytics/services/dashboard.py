@@ -533,7 +533,7 @@ def get_filter_options(filters: FilterParams) -> dict:
         "meal_types": meals,
         "categories": categories,
         "waste_types": waste_types,
-        "day_types": ["WeekDays", "Weekend"],
+        "day_types": ["Weekdays", "Weekend"],
         "weeks": [
             {
                 "label": week["week"],
@@ -674,7 +674,6 @@ def get_usage_analytics(filters: FilterParams) -> dict:
         require_commodity=False,
         require_created_on_date=False,
     )
-    waste_where_sql, waste_params = _where_clause(filters)
 
     totals_sql = f"""
         SELECT
@@ -703,26 +702,12 @@ def get_usage_analytics(filters: FilterParams) -> dict:
     """
     meal_rows = _fetch_all(meal_sql, count_params)
 
-    waste_type_sql = f"""
-        SELECT
-            {_waste_type_expr()} AS waste_type,
-            COUNT(*) AS scans
-        FROM {_table()}
-        {count_where_sql}
-          AND {_waste_type_expr()} IS NOT NULL
-          AND {_waste_type_expr()} <> ''
-        GROUP BY {_waste_type_expr()}
-        ORDER BY scans DESC, waste_type ASC
-    """
-    waste_type_rows = _fetch_all(waste_type_sql, count_params)
-
     return {
         "total_scans": total_scans,
         "active_days": active_days,
         "scans_per_day": scans_per_day,
         "total_devices": total_devices,
         "scans_by_meal": [{"name": row["meal"], "value": int(row["scans"])} for row in meal_rows],
-        "scans_by_waste_type": [{"name": row["waste_type"], "value": int(row["scans"])} for row in waste_type_rows],
     }
 
 
@@ -737,6 +722,7 @@ def get_bain_marie_analytics(filters: FilterParams) -> dict:
         meal_types=filters.meal_types,
         categories=filters.categories,
         waste_types=(bain_marie_type,),
+        day_types=filters.day_types,
         week=filters.week,
         weeks=filters.weeks,
         customer_id=filters.customer_id,
